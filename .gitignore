@@ -1,5 +1,6 @@
 *.db
 *.pyc
 *.pid
+default.cfg
 tenhou-game-xml/
 logs/
