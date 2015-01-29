@@ -8,7 +8,7 @@ class SocketServer(Thread):
         self.bot = bot
     def run(self):
         ssock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssock.bind(('127.0.0.1', 12345))
+        ssock.bind(('127.0.0.1', int(self.bot.config.messagesocket.port)))
         ssock.listen(5)
         while True:
             sock, addr = ssock.accept()
