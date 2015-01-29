@@ -71,14 +71,13 @@ def loglink(bot, trigger):
             i,
         ))
     scores.sort(key=lambda x: x[2], reverse=True)
-    bot.say("Replay: http://tenhou.net/0/?" + urlencode((
+    bot.notice("Replay: http://tenhou.net/0/?" + urlencode((
         ('log', logname),
-        #('tw', str(scores[0][3])),
         ('n0', usernames[0]),
         ('n1', usernames[1]),
         ('n2', usernames[2]),
         ('n3', usernames[3]),
-        )))
-    bot.say("Starting seats (ESWN): " + ", ".join(usernames))
-    bot.say("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)))
+        )), trigger.sender)
+    bot.notice("Starting seats (ESWN): " + ", ".join(usernames), trigger.sender)
+    bot.notice("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)), trigger.sender)
     return willie.module.NOLIMIT
