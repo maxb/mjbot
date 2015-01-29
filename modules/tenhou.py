@@ -37,7 +37,7 @@ def tenhouHash(game):
     else:
         return game
 
-@willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-([0-9a-f]{8}|x[0-9a-f]{12})).*')
+@willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*')
 def loglink(bot, trigger):
     logname = trigger.group(1)
     logname = tenhouHash(logname)
@@ -71,13 +71,30 @@ def loglink(bot, trigger):
             i,
         ))
     scores.sort(key=lambda x: x[2], reverse=True)
-    bot.notice("Replay: http://tenhou.net/0/?" + urlencode((
+    uparams = [
         ('log', logname),
         ('n0', usernames[0]),
         ('n1', usernames[1]),
         ('n2', usernames[2]),
         ('n3', usernames[3]),
-        )), trigger.sender)
-    bot.notice("Starting seats (ESWN): " + ", ".join(usernames), trigger.sender)
+        ]
+    trailer = trigger.group(2)
+    viewpoint = handindex = None
+    if trailer:
+        for item in trailer.split('&'):
+            bits = item.split('=', 1)
+            if len(bits) == 2:
+                k, v = bits
+                if k == 'tw':
+                    viewpoint = v
+                elif k == 'ts':
+                    handindex = v
+    if handindex is not None:
+        if viewpoint is not None:
+            uparams.append(('tw', viewpoint))
+        uparams.append(('ts', handindex))
+    bot.notice("Replay: http://tenhou.net/0/?" + urlencode(uparams), trigger.sender)
+    if handindex is None:
+        bot.notice("Starting seats (ESWN): " + ", ".join(usernames), trigger.sender)
     bot.notice("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)), trigger.sender)
     return willie.module.NOLIMIT
