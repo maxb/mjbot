@@ -53,31 +53,30 @@ def loglink(bot, trigger):
     etree = ET.fromstring(data)
     owari = etree.find('./*[@owari]').get('owari').split(',')
     un_tag = etree.find('UN')
-    usernames = [
-            unquote(un_tag.get('n0')),
-            unquote(un_tag.get('n1')),
-            unquote(un_tag.get('n2')),
-            unquote(un_tag.get('n3')),
-            ]
+    if un_tag.get('n3'):
+        players = 4
+    else:
+        players = 3
+    usernames = []
     scores = []
-    for i in range(4):
+    uparams = [
+        ('log', logname),
+        ]
+    for i in range(players):
         num = owari[i * 2 + 1]
         if num[0] != '-':
             num = "+" + num
+        nx = 'n{}'.format(i)
+        username = unquote(un_tag.get(nx))
+        usernames.append(username)
         scores.append((
-            usernames[i],
+            username,
             num,
             float(num),
             i,
         ))
+        uparams.append((nx, username))
     scores.sort(key=lambda x: x[2], reverse=True)
-    uparams = [
-        ('log', logname),
-        ('n0', usernames[0]),
-        ('n1', usernames[1]),
-        ('n2', usernames[2]),
-        ('n3', usernames[3]),
-        ]
     trailer = trigger.group(2)
     viewpoint = handindex = None
     if trailer:
@@ -95,6 +94,9 @@ def loglink(bot, trigger):
         uparams.append(('ts', handindex))
     bot.notice("Replay: http://tenhou.net/0/?" + urlencode(uparams), trigger.sender)
     if handindex is None:
-        bot.notice("Starting seats (ESWN): " + ", ".join(usernames), trigger.sender)
+        if players == 4:
+            bot.notice("Starting seats (ESWN): " + ", ".join(usernames), trigger.sender)
+        else:
+            bot.notice("Starting seats (ESW): " + ", ".join(usernames), trigger.sender)
     bot.notice("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)), trigger.sender)
     return willie.module.NOLIMIT
