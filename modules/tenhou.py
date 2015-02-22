@@ -2,7 +2,8 @@ import willie
 import binascii
 import os
 import struct
-from urllib import unquote, urlencode, urlopen
+from urllib.parse import unquote, urlencode
+from urllib.request import urlopen
 from xml.etree import ElementTree as ET
 
 DIRECTORY = os.path.expanduser('~/.willie/tenhou-game-xml')
