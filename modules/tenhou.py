@@ -100,4 +100,6 @@ def loglink(bot, trigger):
         else:
             bot.notice("Starting seats (ESW): " + ", ".join(usernames), trigger.sender)
     bot.notice("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)), trigger.sender)
+    httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/' + logname)
+    httpresponse.read()
     return willie.module.NOLIMIT
