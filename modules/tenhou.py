@@ -1,6 +1,7 @@
 import willie
 import binascii
 import os
+import re
 import struct
 from urllib.parse import unquote, urlencode
 from urllib.request import urlopen
@@ -38,10 +39,7 @@ def tenhouHash(game):
     else:
         return game
 
-@willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*')
-def loglink(bot, trigger):
-    logname = trigger.group(1)
-    logname = tenhouHash(logname)
+def download_game(logname):
     target_fname = os.path.join(DIRECTORY, "{}.xml".format(logname))
     if os.path.exists(target_fname):
         with open(target_fname, 'rb') as f:
@@ -51,7 +49,29 @@ def loglink(bot, trigger):
         data = resp.read()
         with open(target_fname, 'wb') as f:
             f.write(data)
-    etree = ET.fromstring(data)
+    return data
+
+@willie.module.commands('waml')
+def loglink_waml(bot, trigger):
+    restofline = trigger.group(2)
+    m = re.search(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*', restofline)
+    if m is None:
+        bot.notice('usage: .waml tenhou-log-link', trigger.sender)
+        return willie.module.NOLIMIT
+    logname = m.group(1)
+    logname = tenhouHash(logname)
+    etree = ET.fromstring(download_game(logname))
+    httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/{}/{}'.format(logname, 'waml-s1'))
+    bot.notice(httpresponse.read(), trigger.sender)
+    return willie.module.NOLIMIT
+
+@willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*')
+def loglink(bot, trigger):
+    if trigger.sender == '#osamuko' or trigger.args[-1].startswith('.waml'):
+        return
+    logname = trigger.group(1)
+    logname = tenhouHash(logname)
+    etree = ET.fromstring(download_game(logname))
     owari = etree.find('./*[@owari]').get('owari').split(',')
     un_tag = etree.find('UN')
     if un_tag.get('n3'):
