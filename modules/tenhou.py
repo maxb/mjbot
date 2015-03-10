@@ -60,18 +60,39 @@ def loglink_waml(bot, trigger):
         return willie.module.NOLIMIT
     logname = m.group(1)
     logname = tenhouHash(logname)
-    etree = ET.fromstring(download_game(logname))
+    download_game(logname)
     httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/{}/{}'.format(logname, 'waml-s1'))
     bot.notice(httpresponse.read(), trigger.sender)
     return willie.module.NOLIMIT
 
+@willie.module.commands('info')
+def infocmd(bot, trigger):
+    restofline = trigger.group(2)
+    m = re.search(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*', restofline)
+    if m is None:
+        bot.notice('usage: .info tenhou-log-link', trigger.sender)
+        return willie.module.NOLIMIT
+    logname = m.group(1)
+    logname = tenhouHash(logname)
+    xml = download_game(logname)
+    httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/{}'.format(logname))
+    bot.notice(httpresponse.read(), trigger.sender)
+    game_info_to_irc(logname, xml, bot, trigger)
+    return willie.module.NOLIMIT
+
 @willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*')
 def loglink(bot, trigger):
-    if trigger.sender == '#osamuko' or trigger.args[-1].startswith('.waml'):
+    if trigger.sender == '#osamuko' or trigger.args[-1].startswith('.waml') or trigger.args[-1].startswith('.info'):
         return
     logname = trigger.group(1)
     logname = tenhouHash(logname)
-    etree = ET.fromstring(download_game(logname))
+    download_game(logname)
+    httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/' + logname)
+    bot.notice(httpresponse.read(), trigger.sender)
+    return willie.module.NOLIMIT
+
+def game_info_to_irc(logname, xml, bot, trigger):
+    etree = ET.fromstring(xml)
     owari = etree.find('./*[@owari]').get('owari').split(',')
     un_tag = etree.find('UN')
     if un_tag.get('n3'):
@@ -120,6 +141,3 @@ def loglink(bot, trigger):
         else:
             bot.notice("Starting seats (ESW): " + ", ".join(usernames), trigger.sender)
     bot.notice("Scores: " + " ".join(("{}({})".format(name, score) for name, score, number, playerpos in scores)), trigger.sender)
-    httpresponse = urlopen('http://mahjong.maxb.eu/api/new_game/' + logname)
-    httpresponse.read()
-    return willie.module.NOLIMIT
