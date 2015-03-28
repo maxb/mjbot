@@ -22,7 +22,7 @@ class ConnHandler(Thread):
         self.sock = sock
     def run(self):
         channel = self.bot.channels[0]
-        data = self.sock.makefile().read().decode('utf-8', 'replace').strip()
+        data = self.sock.makefile(mode='r', encoding='utf8').read().strip()
         self.bot.notice(channel, data)
         self.sock.close()
 
