@@ -82,7 +82,7 @@ def infocmd(bot, trigger):
 
 @willie.module.rule(r'.*(20[0-9]{8}gm-[0-9a-f]{4}-[0-9]{4,5}-(?:[0-9a-f]{8}|x[0-9a-f]{12}))(&[&=%A-Za-z0-9]*)?.*')
 def loglink(bot, trigger):
-    if trigger.sender == '#osamuko' or trigger.args[-1].startswith('.waml') or trigger.args[-1].startswith('.info'):
+    if trigger.args[-1].startswith('.waml') or trigger.args[-1].startswith('.info'):
         return
     logname = trigger.group(1)
     logname = tenhouHash(logname)
