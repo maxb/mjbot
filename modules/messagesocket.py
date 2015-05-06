@@ -6,12 +6,15 @@ class SocketServer(Thread):
         Thread.__init__(self)
         self.daemon = True
         self.bot = bot
+        self.stop = False
+        self.ssock = None
+
     def run(self):
-        ssock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssock.bind(('127.0.0.1', int(self.bot.config.messagesocket.port)))
-        ssock.listen(5)
-        while True:
-            sock, addr = ssock.accept()
+        self.ssock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.ssock.bind(('127.0.0.1', int(self.bot.config.messagesocket.port)))
+        self.ssock.listen(5)
+        while not self.stop:
+            sock, addr = self.ssock.accept()
             ConnHandler(self.bot, sock).start()
 
 class ConnHandler(Thread):
@@ -27,4 +30,10 @@ class ConnHandler(Thread):
         self.sock.close()
 
 def setup(bot):
-    SocketServer(bot).start()
+    global server
+    server = SocketServer(bot)
+    server.start()
+
+def shutdown(bot):
+    server.stop = True
+    server.ssock.close()
