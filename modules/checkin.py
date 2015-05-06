@@ -45,7 +45,7 @@ def forcecheckout(bot, trigger):
     try:
         state.checked_in.remove(who)
         num = len(state.checked_in)
-        bot.say("{} checked out - we now have {} player{}".format(trigger.nick, num, '' if num == 1 else 's'))
+        bot.notice("{} checked {} out - we now have {} player{}".format(trigger.nick, who, num, '' if num == 1 else 's'), trigger.sender)
     except ValueError:
         bot.reply("{} was not checked in".format(who), notice=True)
     return willie.module.NOLIMIT
