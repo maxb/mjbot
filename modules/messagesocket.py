@@ -8,8 +8,15 @@ class SocketServer(Thread):
         self.bot = bot
         self.stop = False
         self.ssock = None
+        self.start()
+
+    def request_stop(self):
+        print("{} closing socket".format(self))
+        self.stop = True
+        self.ssock.close()
 
     def run(self):
+        print("{} opening socket".format(self))
         self.ssock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ssock.bind(('127.0.0.1', int(self.bot.config.messagesocket.port)))
         self.ssock.listen(5)
@@ -32,8 +39,6 @@ class ConnHandler(Thread):
 def setup(bot):
     global server
     server = SocketServer(bot)
-    server.start()
 
 def shutdown(bot):
-    server.stop = True
-    server.ssock.close()
+    server.request_stop()
